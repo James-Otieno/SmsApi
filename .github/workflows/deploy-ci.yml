@@ -1,33 +1,44 @@
-name: Deploy to Server
+name: Deploy Node.js API to AWS
 
 on:
   push:
     branches:
-      - main
+      - main  # Adjust to the branch you use for deployment
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout the code
-      uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.9.0
+    - name: Set up SSH agent
+      uses: webfactory/ssh-agent@v0.7.0
       with:
-        ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+        ssh-private-key: ${{ secrets.DEPLOYSECRET }}
 
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        path: ~/.cache
-        key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}  # Adjust this key as needed
-
-    - name: Copy files to the server
+    - name: Deploy to EC2
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
       run: |
-        ssh -o StrictHostKeyChecking=no root@35.202.133.83 "rm -rf /var/www/html/*"
-        scp -r * root@3.87.222.112:/var/www/html/
+        ssh -o StrictHostKeyChecking=no ec2-user@3.87.222.112 << 'EOF'
+          # Navigate to the project directory (or clone if missing)
+          if [ ! -d "/home/ec2-user/sms" ]; then
+            git clone https://github.com/james-otieno/SmsApi.git /home/ec2-user/my-node-api
+          fi
 
-    - name: Restart Apache
-      run: |
-        ssh -o StrictHostKeyChecking=no root@35.202.133.83 "sudo systemctl restart apache2"
+          cd /home/ec2-user/sms
+
+          # Pull the latest changes
+          git pull origin main
+
+          # Install dependencies
+          npm install
+
+          # Restart the application with PM2
+          pm2 restart app || pm2 index.js --name sms
+
+          # Save the PM2 process list for startup on reboot
+          pm2 save
+        EOF
