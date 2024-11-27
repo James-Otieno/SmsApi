@@ -25,7 +25,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no ec2-user@3.87.222.112 << 'EOF'
           # Navigate to the project directory (or clone if missing)
           if [ ! -d "/home/ec2-user/sms" ]; then
-            git clone https://github.com/james-otieno/SmsApi.git /home/ec2-user/my-node-api
+            git clone https://github.com/james-otieno/SmsApi.git /home/ec2-user/sms
           fi
 
           cd /home/ec2-user/sms
