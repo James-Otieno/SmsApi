@@ -24,11 +24,11 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no ec2-user@3.87.222.112 << 'EOF'
           # Navigate to the project directory (or clone if missing)
-          if [ ! -d "/home/ec2-user/sms" ]; then
-            git clone https://github.com/james-otieno/SmsApi.git /home/ec2-user/sms
+          if [ ! -d "/home/ec2-user/sms/SmsApi" ]; then
+            git clone https://github.com/james-otieno/SmsApi.git /home/ec2-user/sms/SmsApi
           fi
 
-          cd /home/ec2-user/sms
+          cd /home/ec2-user/sms/SmsApi
 
           # Pull the latest changes
           git pull origin main
@@ -37,7 +37,7 @@ jobs:
           npm install
 
           # Restart the application with PM2
-          pm2 restart app || pm2 index.js --name sms
+          pm2 restart app || pm2 index.js --name SmsApi
 
           # Save the PM2 process list for startup on reboot
           pm2 save
